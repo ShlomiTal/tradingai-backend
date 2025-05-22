@@ -1,11 +1,20 @@
 // src/api/mexc/mexc.controller.js
-import { getAccountInfo } from './mexc.service.js';
+import * as mexcService from './mexc.service.js';
 
-export const accountSummary = async (req, res, next) => {
+export const getAccountSummary = async (req, res, next) => {
   try {
-    const data = await getAccountInfo();
-    res.status(200).json(data);
+    const summary = await mexcService.getAccountSummaryFromMEXC();
+    res.json(summary);
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getMarkets = async (req, res, next) => {
+  try {
+    const markets = await mexcService.getMarketsFromMEXC();
+    res.json(markets);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
