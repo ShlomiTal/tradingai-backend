@@ -11,8 +11,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "mexc-api-sdk": "1.0.3",
-    "mexc-api": "^1.0.0" ,
+    "crypto-js": "^4.1.1",
+  "node-mexc-api": "^1.0.0",
     "axios": "^1.6.0"
 
   },
