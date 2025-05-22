@@ -1,8 +1,12 @@
-import { Router } from 'express';
-import { getAccountInfo } from './mexc.controller.js';
+import express from 'express';
+import * as mexcController from './mexc.controller.js';
 
-const router = Router();
+const router = express.Router();
 
-router.get('/account', getAccountInfo);
+// Account & Portfolio endpoints
+router.get('/account-summary', mexcController.getAccountSummary);
+router.get('/portfolio-history', mexcController.getPortfolioHistory);
+router.get('/active-trades', mexcController.getActiveTrades);
+router.get('/trade-stats', mexcController.getTradeStats);
 
 export default router;
