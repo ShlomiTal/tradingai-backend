@@ -1,27 +1,33 @@
+// src/api/mexc/mexc.service.js
 import axios from 'axios';
 import crypto from 'crypto';
 import { config } from '../../config/index.js';
 
-export const fetchAccountSummary = async () => {
-  const { apiKey, apiSecret } = config.mexc;
+const BASE_URL = 'https://api.mexc.com'; // or 'https://www.mexc.com/open/api' if v1
 
-  const baseUrl = 'https://api.mexc.com';
-  const path = '/api/v3/account'; // Example endpoint, update if needed
+export async function getAccountInfo() {
   const timestamp = Date.now();
+  const method = 'GET';
+  const path = '/api/v3/account'; // or your actual MEXC endpoint
 
-  const query = `timestamp=${timestamp}`;
+  // Assemble query string
+  const queryString = `timestamp=${timestamp}`;
   const signature = crypto
-    .createHmac('sha256', apiSecret)
-    .update(query)
+    .createHmac('sha256', config.mexc.apiSecret)
+    .update(queryString)
     .digest('hex');
 
-  const url = `${baseUrl}${path}?${query}&signature=${signature}`;
+  const url = `${BASE_URL}${path}?${queryString}&signature=${signature}`;
 
-  const response = await axios.get(url, {
-    headers: {
-      'X-MEXC-APIKEY': apiKey,
-    },
-  });
+  const headers = {
+    'X-MEXC-APIKEY': config.mexc.apiKey,
+  };
 
-  return response.data;
-};
+  try {
+    const res = await axios.get(url, { headers });
+    return res.data;
+  } catch (error) {
+    console.error('MEXC API Error:', error.response?.data || error.message);
+    throw error;
+  }
+}

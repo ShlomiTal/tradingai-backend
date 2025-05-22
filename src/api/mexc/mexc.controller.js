@@ -1,11 +1,11 @@
-import { fetchAccountSummary } from './mexc.service.js';
+// src/api/mexc/mexc.controller.js
+import { getAccountInfo } from './mexc.service.js';
 
-export const getAccountSummary = async (req, res, next) => {
+export const accountSummary = async (req, res, next) => {
   try {
-    const summary = await fetchAccountSummary();
-    res.json({ success: true, data: summary });
+    const data = await getAccountInfo();
+    res.status(200).json(data);
   } catch (error) {
-    console.error('Error in controller:', error);
-    res.status(500).json({ success: false, error: error.message });
+    next(error);
   }
 };

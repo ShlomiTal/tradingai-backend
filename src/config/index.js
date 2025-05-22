@@ -1,18 +1,14 @@
 import dotenv from 'dotenv';
 
-// Determine if running in production (Railway sets NODE_ENV to 'production')
-const isProduction = process.env.NODE_ENV === 'production';
-
-// Only load .env file if not in production (local development)
-if (!isProduction) {
+if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
 export const config = {
-  port: process.env.PORT || 3001, // Railway will set PORT automatically
+  port: process.env.PORT || 3001,
   mexc: {
     apiKey: process.env.MEXC_API_KEY,
     apiSecret: process.env.MEXC_API_SECRET,
   },
-  nodeEnv: process.env.NODE_ENV || 'development'
+  nodeEnv: process.env.NODE_ENV || 'development',
 };
