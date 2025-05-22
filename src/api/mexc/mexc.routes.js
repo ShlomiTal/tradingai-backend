@@ -1,10 +1,8 @@
-// src/api/mexc/mexc.routes.js
-import express from 'express';
-import { getAccountSummary, getMarkets } from './mexc.controller.js';
+import { Router } from 'express';
+import { getAccountInfo } from './mexc.controller.js';
 
-const router = express.Router();
+const router = Router();
 
-router.get('/account-summary', getAccountSummary);
-router.get('/markets', getMarkets);
+router.get('/account', getAccountInfo);
 
 export default router;

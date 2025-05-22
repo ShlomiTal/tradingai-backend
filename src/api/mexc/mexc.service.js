@@ -1,33 +1,29 @@
-// src/api/mexc/mexc.service.js
 import axios from 'axios';
 import crypto from 'crypto';
 import { config } from '../../config/index.js';
+import { ApiError } from '../../middleware/errorHandler.js';
 
-const BASE_URL = 'https://api.mexc.com'; // or 'https://www.mexc.com/open/api' if v1
+export const fetchAccountInfo = async () => {
+  if (!config.mexc.apiKey || !config.mexc.apiSecret) {
+    throw new ApiError('MEXC API Key or Secret not configured.', 500);
+  }
 
-export async function getAccountInfo() {
   const timestamp = Date.now();
-  const method = 'GET';
-  const path = '/api/v3/account'; // or your actual MEXC endpoint
-
-  // Assemble query string
-  const queryString = `timestamp=${timestamp}`;
+  const params = `timestamp=${timestamp}`;
   const signature = crypto
     .createHmac('sha256', config.mexc.apiSecret)
-    .update(queryString)
+    .update(params)
     .digest('hex');
 
-  const url = `${BASE_URL}${path}?${queryString}&signature=${signature}`;
-
-  const headers = {
-    'X-MEXC-APIKEY': config.mexc.apiKey,
-  };
-
   try {
-    const res = await axios.get(url, { headers });
-    return res.data;
+    const response = await axios.get(`https://api.mexc.com/api/v3/account?${params}&signature=${signature}`, {
+      headers: {
+        'X-MEXC-APIKEY': config.mexc.apiKey,
+      },
+    });
+    return response.data;
   } catch (error) {
-    console.error('MEXC API Error:', error.response?.data || error.message);
-    throw error;
+    const msg = error.response?.data?.msg || error.message;
+    throw new ApiError(`MEXC API Error: ${msg}`, error.response?.status || 500);
   }
-}
+};
