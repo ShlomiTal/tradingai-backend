@@ -17,7 +17,8 @@
     "crypto-js": "^4.1.1",
   "node-mexc-api": "^1.0.0",
     "axios": "^1.6.0",
-    "tsup": "^6.0.0"
+     "tsup": "^6.x",
+  "typescript": "^5.x"
 
   },
   "devDependencies": {
