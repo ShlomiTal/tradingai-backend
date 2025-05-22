@@ -1,8 +1,9 @@
 import express from 'express';
-import { getAccountInfo } from './mexc.controller.js';
+import { getAccountSummary } from './mexc.controller.js';
 
 const router = express.Router();
 
-router.get('/account', getAccountInfo);
+// Define MEXC-related endpoints here
+router.get('/account-summary', getAccountSummary);
 
 export default router;
