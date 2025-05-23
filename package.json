@@ -15,7 +15,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "crypto-js": "^4.1.1",
-    "mexc-api-sdk": "^1.0.5",
+    "mexc-api-sdk": "^1.0.3",
     "axios": "^1.6.0",
     "tsup": "^6.x",
     "typescript": "^5.x"

@@ -1,6 +1,7 @@
 import * as mexcService from './mexc.service.js';
 import { ApiError } from '../../middleware/errorHandler.js';
 
+
 export const getAccountSummary = async (req, res, next) => {
   try {
     const summary = await mexcService.getAccountSummary();
@@ -37,3 +38,4 @@ export const getTradeStats = async (req, res, next) => {
     next(new ApiError(error.message, 500));
   }
 };
+

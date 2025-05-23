@@ -1,127 +1,73 @@
-import MEXC from 'mexc-api-sdk';
+import axios from 'axios';
+import crypto from 'crypto';
 import { config } from '../../config/index.js';
 
-// Initialize MEXC SDK with your API credentials
-const mexcClient = new MexcSDK({
-  apiKey: config.mexc.apiKey,
-  apiSecret: config.mexc.apiSecret,
-  // Add any other required configuration
-});
+const BASE_URL = 'https://contract.mexc.com';
 
+/**
+ * Helper to sign MEXC API requests
+ */
+function sign(queryParams) {
+  return crypto
+    .createHmac('sha256', config.mexc.apiSecret)
+    .update(queryParams)
+    .digest('hex');
+}
+
+/**
+ * Helper to make signed requests to MEXC Futures API
+ */
+async function mexcRequest(endpoint, params = {}) {
+  const timestamp = Date.now();
+  const fullParams = {
+    api_key: config.mexc.apiKey,
+    req_time: timestamp,
+    ...params,
+  };
+
+  const query = new URLSearchParams(fullParams).toString();
+  const signature = sign(query);
+  const url = `${BASE_URL}${endpoint}?${query}&sign=${signature}`;
+
+  const response = await axios.get(url);
+  return response.data;
+}
+
+/**
+ * Get Futures account summary
+ */
 export const getAccountSummary = async () => {
   try {
-    // Get account information
-    const accountInfo = await mexcClient.spot().getAccountInformation();
-    const openOrders = await mexcClient.spot().getOpenOrders();
-    
-    // Calculate total balance in USDT
-    const usdtBalance = accountInfo.balances
-      .find(b => b.asset === 'USDT')?.free || 0;
+    const account = await mexcRequest('/api/v1/private/account/assets');
+
+    const usdtAccount = account.data.find(a => a.currency === 'USDT');
 
     return {
-      balance: parseFloat(usdtBalance),
-      successRate: "65.2%", // You'll need to calculate this from trade history
-      profitLoss: "+$2,387.84", // Calculate from trade history
-      profitPercent: "+12.4%", // Calculate from trade history
-      activeTrades: openOrders.length,
-      tradesInProfit: Math.floor(openOrders.length * 0.65) // Example calculation
+      balance: parseFloat(usdtAccount.available_balance),
+      margin: parseFloat(usdtAccount.margin_balance),
+      pnl: parseFloat(usdtAccount.unrealized_pnl),
+      leverage: usdtAccount.leverage,
     };
   } catch (error) {
-    throw new Error(`Failed to fetch account summary: ${error.message}`);
+    throw new Error(`Failed to fetch account summary: ${error.response?.data?.message || error.message}`);
   }
 };
 
-export const getPortfolioHistory = async (timeframe) => {
+/**
+ * Get all open positions
+ */
+export const getOpenPositions = async () => {
   try {
-    // Convert timeframe to milliseconds for the start time
-    const now = Date.now();
-    const timeframes = {
-      '7d': 7 * 24 * 60 * 60 * 1000,
-      '30d': 30 * 24 * 60 * 60 * 1000,
-      '90d': 90 * 24 * 60 * 60 * 1000,
-      '1y': 365 * 24 * 60 * 60 * 1000
-    };
-    
-    const startTime = now - (timeframes[timeframe] || timeframes['30d']);
-    
-    // Get account snapshots or trade history
-    const trades = await mexcClient.spot().getMyTrades({
-      startTime,
-      endTime: now
-    });
+    const positions = await mexcRequest('/api/v1/private/position/open_positions');
 
-    // Process trades to create portfolio history
-    // This is a simplified example - you'll need to adapt based on MEXC's actual data structure
-    const history = trades.reduce((acc, trade) => {
-      const date = new Date(trade.time).toISOString().split('T')[0];
-      if (!acc[date]) {
-        acc[date] = {
-          date,
-          balance: 0,
-          profit: 0,
-          profitPercent: 0
-        };
-      }
-      // Add trade impact to daily balance
-      // You'll need to implement your own logic here
-      return acc;
-    }, {});
-
-    return Object.values(history);
-  } catch (error) {
-    throw new Error(`Failed to fetch portfolio history: ${error.message}`);
-  }
-};
-
-export const getActiveTrades = async () => {
-  try {
-    const openOrders = await mexcClient.spot().getOpenOrders();
-    
-    return openOrders.map(order => ({
-      id: order.orderId,
-      symbol: order.symbol,
-      type: order.side.toLowerCase(),
-      entry_price: parseFloat(order.price),
-      current_price: parseFloat(order.price), // You might need to fetch current price separately
-      profit_loss: 0, // Calculate based on entry and current price
-      position_size: parseFloat(order.origQty),
-      strategy: "Manual" // You might want to store this information elsewhere
+    return positions.data.map(pos => ({
+      symbol: pos.symbol,
+      side: pos.hold_side,
+      leverage: pos.leverage,
+      entryPrice: pos.open_price,
+      unrealizedPnL: pos.unrealized_pnl,
     }));
   } catch (error) {
-    throw new Error(`Failed to fetch active trades: ${error.message}`);
-  }
-};
-
-export const getTradeStats = async () => {
-  try {
-    // Fetch recent trades to calculate statistics
-    const trades = await mexcClient.spot().getMyTrades();
-    
-    // Calculate statistics from trades
-    const totalTrades = trades.length;
-    const winningTrades = trades.filter(t => parseFloat(t.realPnl) > 0);
-    const winRate = (winningTrades.length / totalTrades) * 100;
-
-    // Process trades by day
-    const tradesByDay = {}; // You'll need to implement this
-    
-    return {
-      totalTrades,
-      winRate: winRate.toFixed(1),
-      avgProfit: 2.8, // Calculate from trades
-      avgLoss: -1.9, // Calculate from trades
-      profitFactor: 2.4, // Calculate from trades
-      maxDrawdown: 14.3, // Calculate from trades
-      tradesByDay: [
-        { day: 'Mon', wins: 12, losses: 5 },
-        // ... populate with real data
-      ],
-      tradesByType: [
-        { name: 'Long', value: winningTrades.length, color: '#4ade80' },
-        { name: 'Short', value: totalTrades - winningTrades.length, color: '#f87171' }
-      ]
-    };
-  } catch (error) {
-    throw new Error(`Failed to fetch trade statistics: ${error.message}`);
+    throw new Error(`Failed to fetch open positions: ${error.response?.data?.message || error.message}`);
   }
 };
