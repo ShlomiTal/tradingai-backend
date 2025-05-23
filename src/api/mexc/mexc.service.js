@@ -1,4 +1,4 @@
-import MexcSDK from 'mexc-api';
+import MEXC from 'mexc-api-sdk';
 import { config } from '../../config/index.js';
 
 // Initialize MEXC SDK with your API credentials
