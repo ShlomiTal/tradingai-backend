@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import mexcRoutes from './api/binance/binance.routes.js';
+import binanceRoutes from './api/binance/binance.routes.js';
 import { globalErrorHandler } from './middleware/error.middleware.js';
 import { config } from './config/index.js';
 
@@ -24,7 +24,7 @@ if (config.nodeEnv === 'development') {
 }
 
 // === API Routes ===
-app.use('/api/mexc', mexcRoutes);
+app.use('/api/binance', binanceRoutes);
 
 // === Health Check ===
 app.get('/health', (req, res) => {

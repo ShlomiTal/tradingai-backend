@@ -1,10 +1,10 @@
-import * as mexcService from './binance.service.js';
+import * as binanceService from './binance.service.js';
 import { ApiError } from '../../middleware/errorHandler.js';
 
 
 export const getAccountSummary = async (req, res, next) => {
   try {
-    const summary = await mexcService.getAccountSummary();
+    const summary = await binanceService.getAccountSummary();
     res.json(summary);
   } catch (error) {
     next(new ApiError(error.message, 500));
@@ -14,7 +14,7 @@ export const getAccountSummary = async (req, res, next) => {
 export const getPortfolioHistory = async (req, res, next) => {
   try {
     const { timeframe = '30d' } = req.query;
-    const history = await mexcService.getPortfolioHistory(timeframe);
+    const history = await binanceService.getPortfolioHistory(timeframe);
     res.json(history);
   } catch (error) {
     next(new ApiError(error.message, 500));
@@ -23,7 +23,7 @@ export const getPortfolioHistory = async (req, res, next) => {
 
 export const getActiveTrades = async (req, res, next) => {
   try {
-    const trades = await mexcService.getActiveTrades();
+    const trades = await binanceService.getActiveTrades();
     res.json(trades);
   } catch (error) {
     next(new ApiError(error.message, 500));
@@ -32,7 +32,7 @@ export const getActiveTrades = async (req, res, next) => {
 
 export const getTradeStats = async (req, res, next) => {
   try {
-    const stats = await mexcService.getTradeStats();
+    const stats = await binanceService.getTradeStats();
     res.json(stats);
   } catch (error) {
     next(new ApiError(error.message, 500));
