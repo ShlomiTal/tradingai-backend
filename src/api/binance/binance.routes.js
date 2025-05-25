@@ -1,12 +1,15 @@
 import express from 'express';
-import * as binanceController from './binance.controller.js';
+import { getAccountSummary } from './binance.service.js';
 
 const router = express.Router();
 
-// Account & Portfolio endpoints
-router.get('/account-summary', binanceController.getAccountSummary);
-router.get('/portfolio-history', binanceController.getPortfolioHistory);
-router.get('/active-trades', binanceController.getActiveTrades);
-router.get('/trade-stats', binanceController.getTradeStats);
+router.get('/account-summary', async (req, res) => {
+  try {
+    const summary = await getAccountSummary();
+    res.json(summary);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router;
