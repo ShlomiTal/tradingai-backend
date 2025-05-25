@@ -1,6 +1,6 @@
 import axios from 'axios';
 import crypto from 'crypto';
-import { config } from '../../config/index.js'; // should contain config.binance.apiKey & apiSecret
+import { config } from '../../config/index.js';
 
 const BASE_URL = 'https://fapi.binance.com';
 
@@ -39,17 +39,68 @@ async function binanceSignedGet(endpoint, params = {}) {
 export const getAccountSummary = async () => {
   try {
     const accountInfo = await binanceSignedGet('/fapi/v2/account');
-
-    const usdtAsset = accountInfo.assets.find(asset => asset.asset === 'USDT');
+    const usdt = accountInfo.assets.find(a => a.asset === 'USDT');
 
     return {
-      balance: parseFloat(usdtAsset.availableBalance),
-      marginBalance: parseFloat(usdtAsset.marginBalance),
-      unrealizedPnl: parseFloat(usdtAsset.unrealizedProfit),
-      totalWalletBalance: parseFloat(usdtAsset.walletBalance),
+      balance: parseFloat(usdt?.availableBalance || 0),
+      marginBalance: parseFloat(usdt?.marginBalance || 0),
+      unrealizedPnl: parseFloat(usdt?.unrealizedProfit || 0),
+      totalWalletBalance: parseFloat(usdt?.walletBalance || 0),
       positions: accountInfo.positions.filter(p => parseFloat(p.positionAmt) !== 0),
     };
   } catch (error) {
     throw new Error(`Failed to fetch Binance Futures account summary: ${error.response?.data?.msg || error.message}`);
+  }
+};
+
+/**
+ * Gets a basic portfolio history mock (Binance doesn't provide direct portfolio history)
+ * You'll need to compute this from trades or balance snapshots
+ */
+export const getPortfolioHistory = async () => {
+  try {
+    // You can fetch income history, aggregate trades, or funding history
+    const income = await binanceSignedGet('/fapi/v1/income', { limit: 30 });
+
+    return income.map(entry => ({
+      asset: entry.asset,
+      income: entry.income,
+      time: new Date(entry.time).toISOString(),
+      type: entry.incomeType,
+    }));
+  } catch (error) {
+    throw new Error(`Failed to fetch portfolio history: ${error.response?.data?.msg || error.message}`);
+  }
+};
+
+/**
+ * Gets a summary of recent trade stats
+ */
+export const getTradeStats = async () => {
+  try {
+    const trades = await binanceSignedGet('/fapi/v1/userTrades', { limit: 50 });
+
+    const totalProfit = trades.reduce((acc, trade) => acc + parseFloat(trade.realizedPnl), 0);
+    const winRate = (trades.filter(t => parseFloat(t.realizedPnl) > 0).length / trades.length) * 100;
+
+    return {
+      totalProfit: totalProfit.toFixed(2),
+      winRate: `${winRate.toFixed(1)}%`,
+      totalTrades: trades.length,
+    };
+  } catch (error) {
+    throw new Error(`Failed to fetch trade stats: ${error.response?.data?.msg || error.message}`);
+  }
+};
+
+/**
+ * Gets currently open futures positions
+ */
+export const getActiveTrades = async () => {
+  try {
+    const positions = await binanceSignedGet('/fapi/v2/positionRisk');
+    return positions.filter(pos => parseFloat(pos.positionAmt) !== 0);
+  } catch (error) {
+    throw new Error(`Failed to fetch active trades: ${error.response?.data?.msg || error.message}`);
   }
 };
