@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import mexcRoutes from './api/mexc/mexc.routes.js';
+import mexcRoutes from './api/binance/binance.routes.js';
 import { globalErrorHandler } from './middleware/error.middleware.js';
 import { config } from './config/index.js';
 

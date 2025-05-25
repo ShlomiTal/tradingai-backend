@@ -1,7 +1,7 @@
 export const config = {
-    mexc: {
-      apiKey: 'your-api-key',
-      apiSecret: 'your-api-secret',
+    binance: {
+      apiKey: 'YOUR_BINANCE_API_KEY',
+      apiSecret: 'YOUR_BINANCE_API_SECRET',
     },
   };
   
